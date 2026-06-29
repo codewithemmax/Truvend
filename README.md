@@ -18,15 +18,18 @@ An AI-powered marketplace that protects buyers and empowers sellers through inte
 
 Every day, millions of Nigerians buy and sell through Instagram, WhatsApp, Facebook Marketplace, and classified platforms.
 
-The biggest problem isn’t discovery.
+The biggest problem isn’t discovery,
 
 It’s trust.
 
 Truvend solves this by combining:
 
 •  AI-powered fraud detection
+
 •  Trust scoring for every listing
+
 •  Escrow-powered payments
+
 •  Real-time transaction monitoring
 
 Instead of asking buyers to “trust the seller,” Truvend helps them verify before they pay.

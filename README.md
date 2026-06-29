@@ -73,8 +73,95 @@ The AI evaluates:
 
 Each listing receives a Trust Score from 0–100 together with an easy-to-understand explanation.
 
+
+### Smart Escrow
+
+Payments are protected through a 48-hour escrow powered by Nomba.
+
+Funds are released only after successful delivery.
+
+If a dispute is raised, payment remains protected until resolution.  
+
 ---
 
+## Features
+
+•  AI fraud detection
+
+•  Trust Score (0–100)
+
+•  Green / Amber / Red Trust Badges
+
+•  Explainable AI risk reports
+
+•  Secure escrow payments
+
+•  Real-time order tracking
+
+•  Seller dashboard
+
+•  Buyer dashboard
+
+•  Dispute management
+
+•  Mobile-first experience
+
+---
+
+## How It Works
+
+```
+Seller creates listing
+        │
+        ▼
+AI Trust Engine analyses listing
+        │
+        ▼
+Trust Score generated
+        │
+        ▼
+Buyer views listing
+        │
+        ▼
+Nomba Checkout
+        │
+        ▼
+Funds enter escrow
+        │
+        ▼
+48-hour protection period
+        │
+        ▼
+Funds released to seller
+```
+---
+
+## Trust Scoring
+
+Our Trust Engine evaluates:
+
+| Signal | Weight |
+|--------|--------|
+| Pricing Anomaly | 30% |
+| Description Quality | 25% |
+| Image Authenticity | 25% |
+| Seller History | 20% |
+
+### Badge system:
+
+### 🟢 Green (70–100)
+
+Safe to purchase.
+
+### 🟡 Amber (40–69)
+
+Proceed with caution.
+
+### 🔴 Red (0–39)
+
+Checkout disabled until risks are resolved.
+
+---
 
 
 

@@ -42,9 +42,18 @@ export default function ListingCard({ listing }: Props) {
           </p>
           {listing.seller && (
             <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-white">
-                {listing.seller.displayName ? listing.seller.displayName.charAt(0).toUpperCase() : "U"}
-              </div>
+              {listing.seller.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={listing.seller.avatarUrl}
+                  alt={listing.seller.displayName}
+                  className="w-6 h-6 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-white">
+                  {listing.seller.displayName ? listing.seller.displayName.charAt(0).toUpperCase() : "U"}
+                </div>
+              )}
               <div>{listing.seller.displayName}</div>
             </div>
           )}

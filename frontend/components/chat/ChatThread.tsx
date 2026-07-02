@@ -72,8 +72,19 @@ export default function ChatThread({ orderId, counterpartyLabel }: Props) {
             >
               <div className="flex items-center gap-2 mb-1">
                 {!mine && (
-                  <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-white">
-                    {msg.sender?.displayName ? msg.sender.displayName.charAt(0).toUpperCase() : "U"}
+                  <div className="flex items-center gap-2">
+                    {msg.sender?.avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={msg.sender.avatarUrl}
+                        alt={msg.sender.displayName}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-white">
+                        {msg.sender?.displayName ? msg.sender.displayName.charAt(0).toUpperCase() : "U"}
+                      </div>
+                    )}
                   </div>
                 )}
                 <div
@@ -83,6 +94,9 @@ export default function ChatThread({ orderId, counterpartyLabel }: Props) {
                       : "rounded-bl-sm bg-white text-teal-deep ring-1 ring-black/5"
                   }`}
                 >
+                  <div className="text-xs font-medium text-gray-600 mb-1">
+                    {!mine && (msg.sender?.displayName ?? counterpartyLabel)}
+                  </div>
                   {msg.body}
                 </div>
               </div>

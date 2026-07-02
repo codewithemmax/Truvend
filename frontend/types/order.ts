@@ -1,4 +1,3 @@
-
 export type OrderStatus =
   | "pending"
   | "paid"

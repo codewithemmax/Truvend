@@ -254,8 +254,27 @@ function OrdersTable({
                 <span className="text-[10px] uppercase text-gray-400 md:hidden">
                   Order ID
                 </span>
-                <div className="font-mono text-sm text-teal-deep">
-                  {order.id.slice(0, 8)}…
+                <div className="flex items-center gap-3">
+                  <div className="font-mono text-sm text-teal-deep">
+                    {order.id.slice(0, 8)}…
+                  </div>
+                  <div className="hidden items-center gap-2 md:flex">
+                    {order.buyer?.avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={order.buyer.avatarUrl}
+                        alt={order.buyer.displayName}
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs text-white">
+                        {(order.buyer?.displayName ?? order.buyerId || "").charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="text-sm text-gray-700">
+                      {order.buyer?.displayName ?? order.buyerId}
+                    </div>
+                  </div>
                 </div>
               </div>
 

@@ -172,7 +172,7 @@ Depends on `unit_backend.md` Phase 6 (backend joins must ship first — these un
   - Update `normalizeOrder` and `normalizeMessage` in `lib/normalize.ts` accordingly.
  - [x] **Unit F8.5: Render names in ChatThread**
   - `components/chat/ChatThread.tsx` currently labels bubbles generically ("Seller"/"Buyer" derived from ID comparison per the F7.4 note). Replace with the actual `sender.displayName` + small avatar next to each bubble.
-- [ ] **Unit F8.6: Render names on order tracking + seller dashboard**
+ - [x] **Unit F8.6: Render names on order tracking + seller dashboard**
   - `app/orders/[id]/page.tsx` — show buyer/seller name near the `EscrowTimeline`.
   - `app/seller/page.tsx` — orders table gets a buyer name column instead of/alongside the truncated order ID.
 

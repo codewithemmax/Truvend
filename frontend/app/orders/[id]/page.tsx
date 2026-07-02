@@ -86,6 +86,50 @@ function OrderDetails({ id }: { id: string }) {
 
       <p className="mt-4 text-gray-600">{STATUS_MESSAGES[order.status]}</p>
 
+      <div className="mt-6 flex items-center gap-8">
+        <div className="flex items-center gap-3">
+          {order.seller?.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={order.seller.avatarUrl}
+              alt={order.seller.displayName}
+              className="w-9 h-9 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center text-sm text-white">
+              {(order.seller?.displayName ?? order.sellerId || "").charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div>
+            <div className="text-sm font-medium text-teal-deep">
+              {order.seller?.displayName ?? order.sellerId}
+            </div>
+            <div className="text-xs text-gray-500">Seller</div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {order.buyer?.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={order.buyer.avatarUrl}
+              alt={order.buyer.displayName}
+              className="w-9 h-9 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center text-sm text-white">
+              {(order.buyer?.displayName ?? order.buyerId || "").charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div>
+            <div className="text-sm font-medium text-teal-deep">
+              {order.buyer?.displayName ?? order.buyerId}
+            </div>
+            <div className="text-xs text-gray-500">Buyer</div>
+          </div>
+        </div>
+      </div>
+
       <div className="mt-8">
         <EscrowTimeline status={order.status} />
       </div>

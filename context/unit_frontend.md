@@ -164,7 +164,7 @@ Depends on `unit_backend.md` Phase 6 (backend joins must ship first — these un
   - `lib/normalize.ts` `normalizeListing` — map `raw.seller` (snake_case fields inside: `display_name`, `avatar_url`) into the camelCase shape above. Follow the existing `pick()` pattern already used for every other field — don't hardcode a different access style for this one.
  - [x] **Unit F8.2: Render seller name + avatar on ListingCard**
   - `components/listings/ListingCard.tsx` currently has no seller row at all. Add: small circular avatar (fallback to initials on a colored circle if `avatarUrl` is null) + `seller.displayName`, placed under the title, above or beside the price.
-- [ ] **Unit F8.3: Render seller name + avatar on listing detail page**
+ - [x] **Unit F8.3: Render seller name + avatar on listing detail page**
   - `app/listings/[id]/page.tsx` currently renders `listing.sellerId.slice(0, 8) + "…"` under "Seller" — replace with avatar + `seller.displayName`. Delete the truncated-ID fallback entirely; if `seller` is missing from the API response, that's a backend bug to surface, not something to paper over with a truncated UUID.
 - [ ] **Unit F8.4: Update `Order`/`Message` types + normalizers**
   - `types/order.ts` — add `buyer?: { displayName: string; avatarUrl: string | null }`, `seller?: { displayName: string; avatarUrl: string | null }`.

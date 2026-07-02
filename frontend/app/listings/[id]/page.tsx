@@ -57,11 +57,29 @@ export default function ListingDetailsPage({ params }: Props) {
 
           <Separator className="my-6" />
 
-          <div className="text-xs uppercase tracking-wide text-gray-500">
-            Seller
-          </div>
-          <div className="mt-1 font-medium text-teal-deep">
-            {listing.sellerId ? listing.sellerId.slice(0, 8) + "…" : "Unknown"}
+          <div className="text-xs uppercase tracking-wide text-gray-500">Seller</div>
+          <div className="mt-1 flex items-center gap-3">
+            {listing.seller?.avatarUrl ? (
+              <img
+                src={listing.seller.avatarUrl}
+                alt={listing.seller.displayName}
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm text-white">
+                {listing.seller?.displayName
+                  ? listing.seller.displayName.charAt(0).toUpperCase()
+                  : "U"}
+              </div>
+            )}
+
+            <div className="font-medium text-teal-deep">
+              {listing.seller?.displayName
+                ? listing.seller.displayName
+                : listing.sellerId
+                ? listing.sellerId.slice(0, 8) + "…"
+                : "Unknown"}
+            </div>
           </div>
 
           <div className="mt-6 grid max-w-sm gap-3">

@@ -15,4 +15,7 @@ export interface Order {
   sellerId: string;
 
   status: OrderStatus;
+
+  amount?: number;
+  createdAt?: string;
 }

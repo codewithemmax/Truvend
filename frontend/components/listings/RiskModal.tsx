@@ -1,8 +1,15 @@
-
-
 "use client";
 
-import Modal from "@/components/common/Modal";
+import { AlertTriangle } from "lucide-react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Button from "@/components/common/Button";
 
 interface Props {
@@ -14,6 +21,9 @@ interface Props {
   onReport?: () => void;
 }
 
+// Backed by shadcn Dialog for focus trap and Escape key handling — this modal
+// is the hard gate for high_risk checkouts (backend guide §05), so accessibility
+// on the block is non-negotiable.
 export default function RiskModal({
   open,
   riskLevel,
@@ -22,32 +32,45 @@ export default function RiskModal({
   onProceed,
   onReport,
 }: Props) {
-  // Guard against any missing/undefined data from the API — this component's
-  // JSX gets evaluated by React even while `open` is false (Modal only
-  // decides whether to render *after* this runs), so an undefined riskLevel
-  // must never throw here.
-  if (!open) {
-    return null;
-  }
-
   const safeRiskLevel = riskLevel || "high_risk";
-  const safeExplanation = riskExplanation || "This listing has been flagged for review.";
+  const safeExplanation =
+    riskExplanation || "This listing has been flagged for review.";
 
   return (
-    <Modal open={open}>
-      <div className="max-w-lg">
-        <h2 className="text-2xl font-bold text-alert-red">High Risk Listing</h2>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-lg border-alert-red/30 sm:max-w-lg"
+      >
+        <div className="mb-2 flex justify-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-alert-red/10">
+            <AlertTriangle
+              className="h-9 w-9 text-alert-red"
+              aria-hidden="true"
+            />
+          </div>
+        </div>
 
-        <p className="mt-4">
-          Risk Level:
-          <span className="ml-2 font-semibold capitalize">
-            {safeRiskLevel.replace("_", " ")}
-          </span>
-        </p>
+        <DialogHeader className="items-center text-center">
+          <DialogTitle className="text-2xl font-bold text-alert-red">
+            High Risk Listing
+          </DialogTitle>
+          <DialogDescription className="text-sm">
+            Risk Level:
+            <span className="ml-1 font-semibold capitalize text-teal-deep">
+              {safeRiskLevel.replace("_", " ")}
+            </span>
+          </DialogDescription>
+        </DialogHeader>
 
-        <p className="mt-4 text-gray-600">{safeExplanation}</p>
+        <p className="text-center text-sm text-gray-700">{safeExplanation}</p>
 
-        <div className="mt-8 flex justify-end gap-3">
+        <DialogFooter className="justify-center sm:justify-end">
           {onReport && (
             <Button onClick={onReport} variant="danger">
               Report
@@ -63,8 +86,8 @@ export default function RiskModal({
               Proceed Anyway
             </Button>
           )}
-        </div>
-      </div>
-    </Modal>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

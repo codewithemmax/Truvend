@@ -31,7 +31,7 @@ export function normalizeListing(raw: Record<string, unknown>): Listing {
     sellerId: String(pick(raw, "sellerId", "seller_id") ?? ""),
     title: String(pick(raw, "title") ?? "Untitled listing"),
     description: String(pick(raw, "description") ?? ""),
-    image: String(pick(raw, "image", "image_url", "imageUrl") ?? ""),
+    image: String(pick(raw, "image", "image_url", "imageUrl", "photo_url", "photoUrl") ?? ""),
     price: Number(pick(raw, "price") ?? 0),
     riskScore: Number(pick(raw, "riskScore", "risk_score") ?? 0),
     riskLevel: safeRiskLevel,
@@ -62,12 +62,17 @@ export function normalizeOrder(raw: Record<string, unknown>): Order {
     ? (status as OrderStatus)
     : "pending";
 
+  const amountRaw = pick(raw, "amount");
+  const createdAtRaw = pick(raw, "createdAt", "created_at");
+
   return {
     id: String(pick(raw, "id") ?? ""),
     listingId: String(pick(raw, "listingId", "listing_id") ?? ""),
     buyerId: String(pick(raw, "buyerId", "buyer_id") ?? ""),
     sellerId: String(pick(raw, "sellerId", "seller_id") ?? ""),
     status: safeStatus,
+    amount: amountRaw !== undefined ? Number(amountRaw) : undefined,
+    createdAt: createdAtRaw !== undefined ? String(createdAtRaw) : undefined,
   };
 }
 

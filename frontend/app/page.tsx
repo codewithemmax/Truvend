@@ -19,7 +19,7 @@ export default function Home() {
 
         {loading && <Loading />}
         {error && <p className="text-red-600">{error}</p>}
-        {!loading && !error && <ListingsGrid listings={listings.slice(0, 6)} />}
+        {!loading && !error && <ListingsGrid listings={listings} />}
       </section>
     </main>
   );

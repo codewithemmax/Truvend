@@ -83,11 +83,9 @@ function OrderDetails({ id }: { id: string }) {
 
       <p className="mt-4 text-gray-600">{STATUS_MESSAGES[order.status]}</p>
 
-      {order.status !== "cancelled" && order.status !== "disputed" && (
-        <div className="mt-8">
-          <EscrowTimeline status={order.status} />
-        </div>
-      )}
+      <div className="mt-8">
+        <EscrowTimeline status={order.status} />
+      </div>
 
       {actionError && (
         <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{actionError}</p>

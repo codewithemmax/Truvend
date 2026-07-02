@@ -251,7 +251,7 @@ Commit format: `feat(U#.#): short description`
 
 ## Phase 4: Backend — Deployment
 
-- [ ] **Unit 4.1: Railway Deployment**
+- [x] **Unit 4.1: Railway Deployment**
   - Deploy `/backend` to Railway as its own service (monorepo — confirm Railway is configured with the correct root directory / build path).
   - Set all env vars (`SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `NOMBA_*`, `GEMINI_API_KEY`) in Railway, never committed to the repo.
   - Confirm `GET /api/health` responds on the public Railway URL.

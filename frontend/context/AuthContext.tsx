@@ -21,7 +21,8 @@ interface AuthContextValue {
   signup: (
     name: string,
     email: string,
-    password: string
+    password: string,
+    role?: "buyer" | "seller"
   ) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
 }
@@ -58,12 +59,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   }
 
-  async function signup(name: string, email: string, password: string) {
+  async function signup(
+    name: string,
+    email: string,
+    password: string,
+    role: "buyer" | "seller" = "buyer"
+  ) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { name },
+        data: { name, role },
       },
     });
 

@@ -1,4 +1,3 @@
-
 import { Listing as ListingType } from "@/types/listing";
 
 export default class Listing implements ListingType {

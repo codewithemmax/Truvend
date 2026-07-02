@@ -1,5 +1,4 @@
-import { Order } from "@/types/order";
-
+import { Order } from "@/types/order";\
 export default class OrderBuilder {
   private order: Partial<Order> = {};
 

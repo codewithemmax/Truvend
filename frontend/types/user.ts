@@ -1,4 +1,3 @@
-
 export type UserRole =
   | "buyer"
   | "seller"
@@ -17,6 +16,3 @@ export interface User {
 
   verified: boolean;
 }
-
-
-====================================================================================================

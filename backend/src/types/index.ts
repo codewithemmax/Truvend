@@ -14,6 +14,7 @@ export interface User {
   id: string
   role: UserRole
   display_name: string
+  avatar_url: string | null
   created_at: string
 }
 
@@ -39,6 +40,8 @@ export interface Listing {
   created_at: string
   photo_url: string | null
 
+  seller?: { display_name: string; avatar_url: string | null }
+
 }
 
 export interface Order {
@@ -51,6 +54,9 @@ export interface Order {
   amount: number
   created_at: string
   updated_at: string
+
+  buyer?: { display_name: string; avatar_url: string | null }
+  seller?: { display_name: string; avatar_url: string | null }
 }
 
 export interface GeminiRiskAnalysis {

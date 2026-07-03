@@ -251,12 +251,69 @@ Commit format: `feat(U#.#): short description`
 
 ## Phase 4: Backend — Deployment
 
-- [ ] **Unit 4.1: Railway Deployment**
+- [x] **Unit 4.1: Railway Deployment**
   - Deploy `/backend` to Railway as its own service (monorepo — confirm Railway is configured with the correct root directory / build path).
   - Set all env vars (`SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `NOMBA_*`, `GEMINI_API_KEY`) in Railway, never committed to the repo.
   - Confirm `GET /api/health` responds on the public Railway URL.
   - Submit the webhook URL (`https://<railway-url>/webhook/nomba`) to the hackathon's webhook-registration form.
   - Verify: public health check passes, and a production webhook fires and hits the deployed endpoint successfully.
+
+---
+
+## Phase 5: Backend — Buyer-Seller Chat
+
+Cross-references `unit_frontend.md` Phase 7. Shipped as REST for the hackathon demo; WebSocket upgrade is post-hackathon work.
+
+- [x] **Unit 5.1: `messages` table**
+  - Run this SQL in Supabase (schema comment lives at the top of `backend/src/services/messages.service.ts`):
+    ```sql
+    CREATE TABLE messages (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      order_id   UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+      sender_id  UUID NOT NULL REFERENCES users(id),
+      body       TEXT NOT NULL CHECK (char_length(body) > 0 AND char_length(body) <= 2000),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      read_at    TIMESTAMPTZ
+    );
+    CREATE INDEX idx_messages_order_id ON messages(order_id, created_at);
+    ```
+
+- [x] **Unit 5.2: Messages service + routes**
+  - `backend/src/services/messages.service.ts` — `getOrderMessages`, `sendMessage`. Both call `assertPartyToOrder` first, which resolves the order → listing chain and rejects with 403 unless the caller is the buyer or the listing's seller.
+  - `backend/src/controllers/messages.controller.ts` — thin wrappers.
+  - `backend/src/routes/messages.ts` — nested under orders router using `Router({ mergeParams: true })`.
+  - Endpoints exposed:
+    - `GET /api/orders/:id/messages` (behind `requireAuth`)
+    - `POST /api/orders/:id/messages` (behind `requireAuth`, body `{ body: string }`)
+
+- [ ] **Unit 5.3 (post-hackathon): WebSocket upgrade**
+  - Add `ws` to `backend/package.json` and attach to the same HTTP server instance Express uses.
+  - Connection auth: client sends Supabase JWT on connect, verified same way `auth.middleware.ts` does.
+  - Emit `message:new` events on send; keep the REST endpoints as the persistence path so socket is delivery-only.
+
+- [ ] **Unit 5.4 (post-hackathon): Moderation**
+  - Unmoderated chat is a risk surface — sellers or buyers could negotiate off-platform, bypassing the risk-scoring system that's the product's whole value prop. Decide: Gemini classifier on `messages.body` before insert? Denylist regex? Manual review flag? Not shippable to real users without a decision.
+
+## Phase 6: Backend — Seller Profile Data (name + avatar on cards/orders)
+ 
+Schema: `users.avatar_url TEXT NULL` added via `reset_schema.sql`. This phase wires that field, plus `display_name`, into every response that currently only returns `seller_id` / `buyer_id`.
+ 
+ - [x] **Unit 6.1: Update `User` type**
+  - `backend/src/types/index.ts` — add `avatar_url: string | null` to the `User` interface.
+ - [x] **Unit 6.2: Join seller info into listings**
+  - `listings.service.ts` — `getActiveListings()` and `getListing(id)` currently `select('*')`. Change to a join:
+```typescript
+    .select('*, seller:users!listings_seller_id_fkey(display_name, avatar_url)')
+```
+  - Add `seller?: { display_name: string; avatar_url: string | null }` to the `Listing` type.
+  - Verify: `GET /api/listings` response includes a nested `seller` object per listing, not just `seller_id`.
+ - [x] **Unit 6.3: Join buyer/seller info into orders**
+  - `orders.service.ts` — `getOrder`, `getSellerOrders` need the counterparty's name for the chat UI (`ChatThread` currently only has `buyerId`/raw IDs to label bubbles).
+  - Add joined `buyer:users(display_name, avatar_url)` and resolve seller via the listing relation.
+  - Verify: `GET /api/orders/:id` response includes both parties' display names.
+ - [x] **Unit 6.4: Messages sender info**
+  - `messages.service.ts` `getOrderMessages` — join `sender:users(display_name, avatar_url)` so the frontend doesn't have to cross-reference IDs to render "who sent this."
+  - Verify: each message in `GET /api/orders/:id/messages` includes sender name/avatar, not just `sender_id`.
 
 ---
 

@@ -255,7 +255,7 @@ Nomba × DevCareer Hackathon 2026
 
 ## License
 
-This project is developed for educational and hackathon purposes.
+ MIT
 
 
 

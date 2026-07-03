@@ -33,6 +33,8 @@ export async function createOrder(listingId: string, buyerId: string): Promise<O
   const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(buyerId)
   if (userError || !user) throw new AppError(500, 'DB_ERROR', 'Failed to fetch buyer details.')
 
+  const checkoutAccountId = SUB_ACCOUNT_ID || undefined
+
   const nombaRes = await nombaRequest<NombaCheckoutResponse>('/v1/checkout/order', 'POST', {
     order: {
       orderReference,
@@ -41,7 +43,7 @@ export async function createOrder(listingId: string, buyerId: string): Promise<O
       customerId: buyerId,
       customerEmail: user.email,
       callbackUrl,
-      accountId: SUB_ACCOUNT_ID,
+      accountId: checkoutAccountId,
     },
   })
 

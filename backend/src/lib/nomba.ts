@@ -1,11 +1,12 @@
-const BASE_URL = process.env.NOMBA_BASE_URL!
-const ACCOUNT_ID = process.env.NOMBA_ACCOUNT_ID!
+const BASE_URL = process.env.NOMBA_BASE_URL?.replace(/\/$/, '') ?? 'https://api.nomba.com'
+const ACCOUNT_ID = process.env.NOMBA_ACCOUNT_ID?.trim()
 
 // Exported so individual services can place it in exactly the right field per endpoint.
-// Checkout: inside order.accountId. VA (sub-account path): URL param. Don't inject globally.
-export const SUB_ACCOUNT_ID = process.env.NOMBA_SUB_ACCOUNT_ID!
-const CLIENT_ID = process.env.NOMBA_CLIENT_ID!
-const CLIENT_SECRET = process.env.NOMBA_CLIENT_SECRET!
+// Checkout uses the parent or sub-account ID in the request body/headers depending on the flow.
+// Virtual accounts may target a sub-account through a URL path rather than the shared header.
+export const SUB_ACCOUNT_ID = process.env.NOMBA_SUB_ACCOUNT_ID?.trim() || ''
+const CLIENT_ID = process.env.NOMBA_CLIENT_ID?.trim()
+const CLIENT_SECRET = process.env.NOMBA_CLIENT_SECRET?.trim()
 
 interface CachedToken {
   accessToken: string
@@ -22,19 +23,23 @@ async function issueToken(): Promise<string> {
     return cachedToken.accessToken
   }
 
+  if (!ACCOUNT_ID || !CLIENT_ID || !CLIENT_SECRET) {
+    throw new Error('Missing Nomba credentials. Set NOMBA_ACCOUNT_ID, NOMBA_CLIENT_ID, and NOMBA_CLIENT_SECRET.')
+  }
+
   const res = await fetch(`${BASE_URL}/v1/auth/token/issue`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    accountId: ACCOUNT_ID,          // ← add this
-  },
-  body: JSON.stringify({
-    grantType: 'client_credentials',
-    clientId: CLIENT_ID,
-    clientSecret: CLIENT_SECRET,
-    accountId: ACCOUNT_ID,
-  }),
-})
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      accountId: ACCOUNT_ID,
+    },
+    body: JSON.stringify({
+      grant_type: 'client_credentials',
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      accountId: ACCOUNT_ID,
+    }),
+  })
 
   if (!res.ok) {
     const body = await res.text()
@@ -58,13 +63,18 @@ export async function nombaRequest<T>(
   const token = await issueToken()
   const payload = body
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  }
+
+  if (ACCOUNT_ID) {
+    headers.accountId = ACCOUNT_ID
+  }
+
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-      accountId: ACCOUNT_ID,
-    },
+    headers,
     body: payload ? JSON.stringify(payload) : undefined,
   })
 

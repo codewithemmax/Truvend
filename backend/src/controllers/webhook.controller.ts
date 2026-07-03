@@ -3,6 +3,7 @@ import crypto from 'crypto'
 import type { Request, Response } from 'express'
 
 import { supabase } from '../lib/supabase'
+import { nombaRequest } from '../lib/nomba'
 
 interface NombaWebhookPayload {
   event_type: string
@@ -25,6 +26,18 @@ interface NombaWebhookPayload {
       accountId?: string
     }
     customer: Record<string, unknown>
+  }
+}
+
+interface CheckoutTransactionVerificationResponse {
+  code: string
+  description?: string
+  data?: {
+    success?: boolean | string
+    message?: string
+    transactionDetails?: {
+      statusCode?: string
+    }
   }
 }
 
@@ -102,15 +115,28 @@ export async function handleNombaWebhook(req: Request, res: Response): Promise<v
     return
   }
 
-  const { error } = await supabase
-    .from('orders')
-    .update({ status: 'paid', updated_at: new Date().toISOString() })
-    .eq('nomba_order_ref', orderRef)
-    .eq('status', 'pending')
+  try {
+    const verificationPath = `/v1/checkout/transaction?idType=ORDER_REFERENCE&id=${encodeURIComponent(orderRef)}`
+    const verification = await nombaRequest<CheckoutTransactionVerificationResponse>(verificationPath, 'GET')
+    const isSuccessful = verification.data?.success === true || verification.data?.success === 'true'
 
-  if (error) {
-    console.error(`[webhook] Failed to update order ${orderRef}:`, error)
-  } else {
-    console.log(`[webhook] Order ${orderRef} marked as paid`)
+    if (!isSuccessful) {
+      console.warn(`[webhook] Checkout verification not successful for ${orderRef}:`, verification)
+      return
+    }
+
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: 'paid', updated_at: new Date().toISOString() })
+      .eq('nomba_order_ref', orderRef)
+      .eq('status', 'pending')
+
+    if (error) {
+      console.error(`[webhook] Failed to update order ${orderRef}:`, error)
+    } else {
+      console.log(`[webhook] Order ${orderRef} marked as paid`)
+    }
+  } catch (err) {
+    console.error(`[webhook] Failed to verify checkout transaction ${orderRef}:`, err)
   }
 }

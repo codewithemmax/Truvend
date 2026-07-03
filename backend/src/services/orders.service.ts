@@ -211,11 +211,14 @@ export async function raiseDispute(orderId: string, buyerId: string): Promise<Or
   return updated as Order
 }
 
-interface NombaTransactionLookupResponse {
+interface NombaTransactionVerificationResponse {
   code: string
+  description?: string
   data?: {
     id?: string
     status?: string
+    success?: boolean | string
+    message?: string
   }
 }
 
@@ -242,6 +245,14 @@ export async function requestRefund(orderId: string, buyerId: string): Promise<O
     throw new AppError(403, 'FORBIDDEN', 'Only the buyer can request a refund.')
   }
 
+  if (order.status === 'delivered' || order.status === 'completed') {
+    throw new AppError(
+      409,
+      'REFUND_NOT_ALLOWED',
+      'Refund cannot be approved because the order has already been completed and the funds have already been released.'
+    )
+  }
+
   const validStatuses: Order['status'][] = ['paid', 'in_escrow', 'dispatched']
   if (!validStatuses.includes(order.status)) {
     throw new AppError(400, 'INVALID_STATUS', `Cannot request a refund for an order with status '${order.status}'.`)
@@ -249,17 +260,19 @@ export async function requestRefund(orderId: string, buyerId: string): Promise<O
 
   const reference = order.nomba_order_ref || orderId
 
-  const verification = await nombaRequest<NombaTransactionLookupResponse>(
+  const verification = await nombaRequest<NombaTransactionVerificationResponse>(
     `/v1/transactions/accounts/single?orderReference=${encodeURIComponent(reference)}`,
     'GET'
   )
 
-  if (verification.code !== '00' || !verification.data?.id) {
-    throw new AppError(502, 'NOMBA_ERROR', 'Unable to locate the Nomba transaction for refund processing.')
+  const isVerified = verification.code === '00' && verification.data?.status === 'SUCCESS' && !!verification.data?.id
+
+  if (!isVerified) {
+    throw new AppError(409, 'NOMBA_ERROR', 'The original transaction has not been confirmed successful yet, so refund cannot be approved.')
   }
 
   const refundResponse = await nombaRequest<NombaRefundResponse>('/v1/checkout/refund', 'POST', {
-    transactionId: verification.data.id,
+    transactionId: verification.data!.id,
   })
 
   const refundSucceeded = refundResponse.code === '00' || refundResponse.data?.success === true || refundResponse.data?.success === 'true'

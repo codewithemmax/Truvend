@@ -27,13 +27,35 @@ export async function createOrder(listingId: string, buyerId: string): Promise<O
   }
 
   const orderReference = randomUUID()
-  const callbackUrl = `${process.env.BACKEND_URL}/webhook/nomba`
 
   // Fetch buyer email from Supabase Auth
   const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(buyerId)
   if (userError || !user) throw new AppError(500, 'DB_ERROR', 'Failed to fetch buyer details.')
 
   const checkoutAccountId = SUB_ACCOUNT_ID || undefined
+
+  // Create order row first to get the orderId for the callback URL
+  const { data: orderData, error: insertError } = await supabase
+    .from('orders')
+    .insert({
+      listing_id: listingId,
+      buyer_id: buyerId,
+      status: 'pending',
+      nomba_order_ref: null,
+      checkout_link: null,
+      amount: listing.price,
+    })
+    .select()
+    .single()
+
+  if (insertError || !orderData) {
+    console.error('[orders] createOrder insert:', insertError)
+    throw new AppError(500, 'DB_ERROR', 'Failed to create order.')
+  }
+
+  const orderId = orderData.id
+  // Redirect users to the order success page on the frontend after payment
+  const callbackUrl = `${process.env.FRONTEND_URL}/orders/${orderId}?status=success`
 
   const nombaRes = await nombaRequest<NombaCheckoutResponse>('/v1/checkout/order', 'POST', {
     order: {
@@ -47,7 +69,7 @@ export async function createOrder(listingId: string, buyerId: string): Promise<O
     },
   })
 
-console.log('[checkout] Nomba raw response:', JSON.stringify(nombaRes))
+  console.log('[checkout] Nomba raw response:', JSON.stringify(nombaRes))
 
   const checkoutLink = nombaRes.data?.checkoutLink
   const nombaOrderRef = nombaRes.data?.orderReference ?? orderReference
@@ -56,22 +78,21 @@ console.log('[checkout] Nomba raw response:', JSON.stringify(nombaRes))
     throw new AppError(502, 'NOMBA_ERROR', 'Checkout link not returned by Nomba.')
   }
 
+  // Update order with Nomba details
   const { data, error } = await supabase
     .from('orders')
-    .insert({
-      listing_id: listingId,
-      buyer_id: buyerId,
-      status: 'pending',
+    .update({
       nomba_order_ref: nombaOrderRef,
       checkout_link: checkoutLink,
-      amount: listing.price,
+      updated_at: new Date().toISOString(),
     })
+    .eq('id', orderId)
     .select()
     .single()
 
   if (error || !data) {
-    console.error('[orders] createOrder insert:', error)
-    throw new AppError(500, 'DB_ERROR', 'Failed to create order.')
+    console.error('[orders] createOrder update:', error)
+    throw new AppError(500, 'DB_ERROR', 'Failed to update order with checkout details.')
   }
 
   return data as Order

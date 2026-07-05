@@ -235,11 +235,20 @@ export async function handleNombaWebhook(req: WebhookRequest, res: Response): Pr
   // a no-op, not a state regression.
   try {
     const nowIso = new Date().toISOString()
-    log('update', cid, `flipping orders.status pending→in_escrow where nomba_order_ref=${orderRef}`)
+    // Capture Nomba's transactionId now so refund calls later don't need to
+    // hit /v1/transactions/accounts/single (which 404s on hackathon accounts).
+    const nombaTransactionId = payload.data?.transaction?.transactionId ?? null
+    log('update', cid, `flipping orders.status pending→in_escrow where nomba_order_ref=${orderRef}`, {
+      nombaTransactionId,
+    })
 
     const { data, error: dbError } = await supabase
       .from('orders')
-      .update({ status: 'in_escrow', updated_at: nowIso })
+      .update({
+        status: 'in_escrow',
+        nomba_transaction_id: nombaTransactionId,
+        updated_at: nowIso,
+      })
       .eq('nomba_order_ref', orderRef)
       .eq('status', 'pending')
       .select('id, status')

@@ -279,21 +279,22 @@ export async function requestRefund(orderId: string, buyerId: string): Promise<O
     throw new AppError(400, 'INVALID_STATUS', `Cannot request a refund for an order with status '${order.status}'.`)
   }
 
-  const reference = order.nomba_order_ref || orderId
-
-  const verification = await nombaRequest<NombaTransactionVerificationResponse>(
-    `/v1/transactions/accounts/single?orderReference=${encodeURIComponent(reference)}`,
-    'GET'
-  )
-
-  const isVerified = verification.code === '00' && verification.data?.status === 'SUCCESS' && !!verification.data?.id
-
-  if (!isVerified) {
-    throw new AppError(409, 'NOMBA_ERROR', 'The original transaction has not been confirmed successful yet, so refund cannot be approved.')
+  // The Nomba transactionId is captured on the order row by the webhook when
+  // the payment first cleared. If it's missing, the order was either paid
+  // before this field was added (manual DB reconcile), or the webhook never
+  // fired — in either case there's no way to look it up now, since the
+  // /v1/transactions/accounts/single endpoint returns 404 on hackathon accounts.
+  const transactionId = order.nomba_transaction_id
+  if (!transactionId) {
+    throw new AppError(
+      409,
+      'MISSING_TRANSACTION_ID',
+      'No Nomba transaction id is on file for this order. Refund cannot be processed automatically — reconcile it manually.'
+    )
   }
 
   const refundResponse = await nombaRequest<NombaRefundResponse>('/v1/checkout/refund', 'POST', {
-    transactionId: verification.data!.id,
+    transactionId,
   })
 
   const refundSucceeded = refundResponse.code === '00' || refundResponse.data?.success === true || refundResponse.data?.success === 'true'

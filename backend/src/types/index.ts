@@ -50,6 +50,7 @@ export interface Order {
   buyer_id: string
   status: OrderStatus
   nomba_order_ref: string | null
+  nomba_transaction_id: string | null
   checkout_link: string | null
   amount: number
   created_at: string

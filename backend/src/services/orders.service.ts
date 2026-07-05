@@ -293,12 +293,20 @@ export async function requestRefund(orderId: string, buyerId: string): Promise<O
     )
   }
 
-  console.log(`[refund] POST /v1/checkout/refund body:`, { transactionId, orderId })
+  // Docs mark amount as optional, but Nomba's API rejects the call with a
+  // generic 400 when it's omitted for online-checkout transactions. Always
+  // send it — full refund of the original order amount.
+  const refundBody = {
+    transactionId,
+    amount: Number(order.amount),
+  }
+
+  console.log(`[refund] POST /v1/checkout/refund body:`, { ...refundBody, orderId })
 
   const refundResponse = await nombaRequest<NombaRefundResponse & { description?: string }>(
     '/v1/checkout/refund',
     'POST',
-    { transactionId }
+    refundBody
   )
 
   console.log(`[refund] Nomba raw response for order=${orderId}:`, JSON.stringify(refundResponse))
